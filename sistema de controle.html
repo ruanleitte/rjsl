@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Compras Futuras</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+    }
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    #success-message {
+      transition: opacity 0.5s ease;
+    }
+    .popup-overlay {
+      background-color: rgba(0, 0, 0, 0.5);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: none;
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+    .popup {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 500px; /* Ajuste no tamanho do popup */
+      max-height: 90%;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative; /* Para posicionar o botão de fechar corretamente */
+    }
+    .popup img {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+    }
+    .popup .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+    footer {
+      margin-top: 20px;
+      text-align: center;
+      color: #666;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 p-5">
+  <h1 class="text-4xl font-bold text-center text-gray-800 mb-6">Lista de Compras Futuras</h1>
+
+  <form id="add-item-form" class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div class="form-group">
+        <label for="item-name" class="font-bold">Nome do Item:</label>
+        <input type="text" id="item-name" class="w-full p-3 border border-gray-300 rounded mt-1" required>
+      </div>
+      <div class="form-group">
+        <label for="category" class="font-bold">Categoria:</label>
+        <select id="category" class="w-full p-3 border border-gray-300 rounded mt-1">
+          <option>Eletrodomésticos</option>
+          <option>Vestuário</option>
+          <option>Tecnologia</option>
+          <option>Alimentos</option>
+          <option>Móveis</option>
+          <option>Brinquedos</option>
+          <option>Livros</option>
+          <option>Esportes</option>
+          <option>Beleza</option>
+          <option>Saúde</option>
+          <option>Outros</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div class="form-group">
+        <label for="quantity" class="font-bold">Quantidade:</label>
+        <input type="number" id="quantity" class="w-full p-3 border border-gray-300 rounded mt-1" min="1" value="1" required>
+      </div>
+      <div class="form-group">
+        <label for="price" class="font-bold">Preço Estimado:</label>
+        <input type="text" id="price" class="w-full p-3 border border-gray-300 rounded mt-1" required>
+      </div>
+      <div class="form-group">
+        <label for="purchase-date" class="font-bold">Data de Compra:</label>
+        <input type="date" id="purchase-date" class="w-full p-3 border border-gray-300 rounded mt-1" required>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div class="form-group">
+        <label for="site-link" class="font-bold">Link do Site:</label>
+        <input type="url" id="site-link" class="w-full p-3 border border-gray-300 rounded mt-1" placeholder="Opcional">
+      </div>
+    </div>
+
+    <div class="form-group mb-4">
+      <label for="description" class="font-bold">Descrição:</label>
+      <textarea id="description" class="w-full p-3 border border-gray-300 rounded mt-1" rows="3"></textarea>
+    </div>
+    <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700">Adicionar Item</button>
+  </form>
+
+  <div class="mb-5">
+    <div class="flex space-x-4 mb-4">
+      <button class="bg-gray-600 text-white p-3 rounded hover:bg-gray-700" onclick="showWishlist()">Itens de Desejo</button>
+      <button class="bg-blue-600 text-white p-3 rounded hover:bg-blue-700" onclick="showPurchases()">Compras Efetivadas</button>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto mb-5">
+    <div class="flex items-center mb-4">
+      <label for="category-filter" class="font-bold mr-2">Filtrar por Categoria:</label>
+      <select id="category-filter" class="w-60 p-3 border border-gray-300 rounded">
+        <option value="">Todas</option>
+        <option value="Eletrodomésticos">Eletrodomésticos</option>
+        <option value="Vestuário">Vestuário</option>
+        <option value="Tecnologia">Tecnologia</option>
+        <option value="Alimentos">Alimentos</option>
+        <option value="Móveis">Móveis</option>
+        <option value="Brinquedos">Brinquedos</option>
+        <option value="Livros">Livros</option>
+        <option value="Esportes">Esportes</option>
+        <option value="Beleza">Beleza</option>
+        <option value="Saúde">Saúde</option>
+        <option value="Outros">Outros</option>
+      </select>
+    </div>
+
+    <table class="min-w-full bg-white rounded-lg shadow-md mt-4" id="wishlist-table">
+      <thead>
+        <tr class="bg-blue-600 text-white">
+          <th class="py-3 px-4">Imagem</th>
+          <th class="py-3 px-4">Nome</th>
+          <th class="py-3 px-4">Categoria</th>
+          <th class="py-3 px-4">Qtd</th>
+          <th class="py-3 px-4">Preço</th>
+          <th class="py-3 px-4">Total</th>
+          <th class="py-3 px-4">Data de Compra</th>
+          <th class="py-3 px-4">Descrição</th>
+          <th class="py-3 px-4">Link do Site</th>
+          <th class="py-3 px-4">Ação</th>
+        </tr>
+      </thead>
+      <tbody id="items-table" class="text-center">
+      </tbody>
+    </table>
+
+    <table class="min-w-full bg-white rounded-lg shadow-md mt-4 hidden" id="purchases-table">
+      <thead>
+        <tr class="bg-green-600 text-white">
+          <th class="py-3 px-4">Imagem</th>
+          <th class="py-3 px-4">Nome</th>
+          <th class="py-3 px-4">Categoria</th>
+          <th class="py-3 px-4">Qtd</th>
+          <th class="py-3 px-4">Preço</th>
+          <th class="py-3 px-4">Total</th>
+          <th class="py-3 px-4">Data de Compra</th>
+          <th class="py-3 px-4">Descrição</th>
+          <th class="py-3 px-4">Link do Site</th>
+          <th class="py-3 px-4">Ação</th>
+        </tr>
+      </thead>
+      <tbody id="purchased-items-table" class="text-center">
+      </tbody>
+    </table>
+  </div>
+
+  <div class="popup-overlay" id="popup-overlay">
+    <div class="popup" id="confirmation-popup">
+      <h2 class="font-bold text-xl">Confirmar Compra</h2>
+      <form id="confirmation-form" class="mt-4">
+        <div class="mb-4">
+          <label for="confirmed-price" class="font-bold">Preço Final:</label>
+          <input type="text" id="confirmed-price" class="w-full p-3 border border-gray-300 rounded mt-1" required>
+        </div>
+        <div class="mb-4">
+          <label for="confirmed-date" class="font-bold">Data da Compra:</label>
+          <input type="date" id="confirmed-date" class="w-full p-3 border border-gray-300 rounded mt-1" required>
+        </div>
+        <button type="submit" class="bg-green-600 text-white p-3 rounded w-full mt-2">Confirmar</button>
+        <button type="button" class="bg-red-600 text-white p-3 rounded w-full mt-2" id="cancel-popup">Cancelar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="popup-overlay" id="image-popup-overlay">
+    <div class="popup" id="image-popup">
+      <button class="close-btn" id="close-image-popup">&times;</button>
+      <img src="" alt="Imagem expandida do item" id="popup-image">
+    </div>
+  </div>
+
+  <div class="popup-overlay" id="edit-popup-overlay">
+    <div class="popup" id="edit-popup">
+      <button class="close-btn" id="close-edit-popup">&times;</button>
+      <h2 class="font-bold text-xl">Editar Item</h2>
+      <form id="edit-form" class="mt-4">
+        <div class="mb-4">
+          <label for="edit-item-name" class="font-bold">Nome do Item:</label>
+          <input type="text" id="edit-item-name" class="w-full p-3 border border-gray-300 rounded mt-1" required>
+        </div>
+        <div class="mb-4">
+          <label for="edit-category" class="font-bold">Categoria:</label>
+          <select id="edit-category" class="w-full p-3 border border-gray-300 rounded mt-1">
+            <option>Eletrodomésticos</option>
+            <option>Vestuário</option>
+            <option>Tecnologia</option>
+            <option>Alimentos</option>
+            <option>Móveis</option>
+            <option>Brinquedos</option>
+            <option>Livros</option>
+            <option>Esportes</option>
+            <option>Beleza</option>
+            <option>Saúde</option>
+            <option>Outros</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label for="edit-quantity" class="font-bold">Quantidade:</label>
+          <input type="number" id="edit-quantity" class="w-full p-3 border border-gray-300 rounded mt-1" min="1" required>
+        </div>
+        <div class="mb-4">
+          <label for="edit-price" class="font-bold">Preço Estimado:</label>
+          <input type="text" id="edit-price" class="w-full p-3 border border-gray-300 rounded mt-1" required>
+        </div>
+        <div class="mb-4">
+          <label for="edit-purchase-date" class="font-bold">Data de Compra:</label>
+          <input type="date" id="edit-purchase-date" class="w-full p-3 border border-gray-300 rounded mt-1" required>
+        </div>
+        <div class="mb-2">
+          <label for="edit-description" class="font-bold">Descrição:</label>
+          <textarea id="edit-description" class="w-full p-3 border border-gray-300 rounded mt-1" rows="2"></textarea>
+        </div>
+        <button type="submit" class="bg-blue-600 text-white p-3 rounded w-full">Salvar</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="success-message" class="text-green-600 opacity-0 mt-4 text-center">
+    <p>Compra Confirmada com Sucesso!</p>
+  </div>
+
+  <footer>
+    <p>Desenvolvido por Ruan Leite</p>
+  </footer>
+
+  <script>
+    const form = document.getElementById('add-item-form');
+    const itemsTable = document.getElementById('items-table');
+    const purchasedItemsTable = document.getElementById('purchased-items-table');
+    const successMessage = document.getElementById('success-message');
+    const confirmationPopup = document.getElementById('confirmation-popup');
+    const popupOverlay = document.getElementById('popup-overlay');
+    const confirmationForm = document.getElementById('confirmation-form');
+    const cancelPopupButton = document.getElementById('cancel-popup');
+    const categoryFilter = document.getElementById('category-filter');
+    const imagePopupOverlay = document.getElementById('image-popup-overlay');
+    const imagePopup = document.getElementById('image-popup');
+    const popupImage = document.getElementById('popup-image');
+    const closeImagePopupButton = document.getElementById('close-image-popup');
+    const wishlistTable = document.getElementById('wishlist-table');
+    const purchasesTable = document.getElementById('purchases-table');
+
+    const editPopupOverlay = document.getElementById('edit-popup-overlay');
+    const editForm = document.getElementById('edit-form');
+    const closeEditPopupButton = document.getElementById('close-edit-popup');
+
+    const imageCache = {};
+
+    // Carregar itens do localStorage ao iniciar
+    document.addEventListener('DOMContentLoaded', loadItemsFromLocalStorage);
+    document.addEventListener('DOMContentLoaded', loadPurchasedItemsFromLocalStorage);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('item-name').value;
+      const category = document.getElementById('category').value;
+      const quantity = parseInt(document.getElementById('quantity').value);
+      const price = parseFloat(document.getElementById('price').value.replace('.', '').replace(',', '.'));
+      const purchaseDate = document.getElementById('purchase-date').value;
+      const description = document.getElementById('description').value;
+      const siteLink = document.getElementById('site-link').value;
+
+      const itemTotal = price * quantity;
+      const placeholderImage = 'https://placehold.co/600x400?text=Loading...';
+
+      const item = {
+        name,
+        category,
+        quantity,
+        price,
+        purchaseDate,
+        description,
+        siteLink,
+        total: itemTotal,
+        image: placeholderImage
+      };
+
+      addItemToTable(item);
+      saveItemsToLocalStorage();
+      showSuccessMessage();
+      form.reset();
+
+      // Fetch the image from the site link asynchronously
+      if (siteLink) {
+        const imageLink = await fetchImageFromSite(siteLink);
+        item.image = imageLink; // Atualiza a imagem no objeto do item
+        updateItemInTable(item); // Atualiza a tabela com a imagem correta
+      }
+    });
+
+    categoryFilter.addEventListener('change', () => {
+      const filterValue = categoryFilter.value;
+      const rows = document.querySelectorAll('#items-table tr');
+      rows.forEach(row => {
+        const category = row.querySelector('td:nth-child(3)').textContent;
+        if (filterValue === '' || category === filterValue) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+
+    function showPurchases() {
+      wishlistTable.classList.add('hidden');
+      purchasesTable.classList.remove('hidden');
+    }
+
+    function showWishlist() {
+      purchasesTable.classList.add('hidden');
+      wishlistTable.classList.remove('hidden');
+    }
+
+    function openImagePopup(imageLink) {
+      popupImage.src = imageLink;
+      imagePopupOverlay.style.display = 'flex';
+    }
+
+    closeImagePopupButton.addEventListener('click', () => {
+      imagePopupOverlay.style.display = 'none';
+    });
+
+    itemsTable.addEventListener('click', (e) => {
+      if (e.target.tagName === 'IMG') {
+        const imageLink = e.target.src; // Captura a imagem do item
+        openImagePopup(imageLink); // Abre o popup com a imagem
+      }
+
+      if (e.target.classList.contains('confirm-purchase')) {
+        const row = e.target.closest('tr');
+        popupOverlay.style.display = 'flex';
+        confirmationPopup.style.display = 'block';
+
+        confirmationForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+
+          const confirmedPrice = parseFloat(document.getElementById('confirmed-price').value.replace('.', '').replace(',', '.'));
+          const confirmedDate = document.getElementById('confirmed-date').value;
+
+          row.querySelector('.confirm-purchase').remove();
+
+          const rowClone = row.cloneNode(true);
+          rowClone.querySelector('td:nth-child(6)').textContent = `R$ ${confirmedPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+          purchasedItemsTable.appendChild(rowClone);
+
+          // Salvar item confirmado no localStorage
+          savePurchasedItemToLocalStorage(rowClone);
+
+          row.remove();
+          popupOverlay.style.display = 'none';
+          confirmationPopup.style.display = 'none';
+
+          showSuccessMessage();
+          saveItemsToLocalStorage(); // Salva as mudanças no localStorage
+        });
+      }
+
+      if (e.target.classList.contains('edit-item') || e.target.closest('.edit-item')) {
+        const row = e.target.closest('tr');
+        const name = row.children[1].textContent;
+        const category = row.children[2].textContent;
+        const quantity = row.children[3].textContent;
+        const price = row.children[4].textContent.replace('R$ ', '').replace('.', '').replace(',', '.');
+        const purchaseDate = row.children[6].textContent;
+        const description = row.children[7].textContent;
+
+        document.getElementById('edit-item-name').value = name;
+        document.getElementById('edit-category').value = category;
+        document.getElementById('edit-quantity').value = quantity;
+        document.getElementById('edit-price').value = price;
+        document.getElementById('edit-purchase-date').value = purchaseDate;
+        document.getElementById('edit-description').value = description;
+
+        editPopupOverlay.style.display = 'flex';
+
+        editForm.onsubmit = (e) => {
+          e.preventDefault();
+          const editedItem = {
+            name: document.getElementById('edit-item-name').value,
+            category: document.getElementById('edit-category').value,
+            quantity: parseInt(document.getElementById('edit-quantity').value),
+            price: parseFloat(document.getElementById('edit-price').value.replace('.', '').replace(',', '.')),
+            purchaseDate: document.getElementById('edit-purchase-date').value,
+            description: document.getElementById('edit-description').value,
+          };
+
+          editedItem.total = editedItem.price * editedItem.quantity; // Corrigido para calcular o total corretamente
+
+          row.children[1].textContent = editedItem.name;
+          row.children[2].textContent = editedItem.category;
+          row.children[3].textContent = editedItem.quantity;
+          row.children[4].textContent = `R$ ${editedItem.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+          row.children[5].textContent = `R$ ${editedItem.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+          row.children[6].textContent = editedItem.purchaseDate;
+          row.children[7].textContent = editedItem.description;
+
+          editPopupOverlay.style.display = 'none';
+          saveItemsToLocalStorage(); // Atualiza o localStorage após editar um item
+        };
+      }
+    });
+
+    cancelPopupButton.addEventListener('click', () => {
+      popupOverlay.style.display = 'none';
+      confirmationPopup.style.display = 'none';
+    });
+
+    closeEditPopupButton.addEventListener('click', () => {
+      editPopupOverlay.style.display = 'none';
+    });
+
+    function removeItem(button) {
+      const row = button.closest('tr');
+      row.remove();
+      saveItemsToLocalStorage(); // Atualiza o localStorage após remover um item
+    }
+
+    async function fetchImageFromSite(siteLink) {
+      if (imageCache[siteLink]) {
+        return imageCache[siteLink];
+      }
+      try {
+        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(siteLink)}`);
+        const data = await response.json();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(data.contents, 'text/html');
+        const ogImage = doc.querySelector('meta[property="og:image"]');
+        const imageLink = ogImage ? ogImage.content : 'https://placehold.co/600x400?text=No+Image';
+        imageCache[siteLink] = imageLink;
+        return imageLink;
+      } catch (error) {
+        console.error('Error fetching image:', error);
+        return 'https://placehold.co/600x400?text=No+Image';
+      }
+    }
+
+    function addItemToTable(item) {
+      const row = document.createElement('tr');
+      row.classList.add('fade-in');
+      row.innerHTML = `
+        <td class="py-2 px-4"><img src="${item.image}" alt="Imagem do item ${item.name}" class="w-12 h-12 object-cover cursor-pointer" onclick="openImagePopup('${item.image}')"></td>
+        <td class="py-2 px-4">${item.name}</td>
+        <td class="py-2 px-4">${item.category}</td>
+        <td class="py-2 px-4">${item.quantity}</td>
+        <td class="py-2 px-4">R$ ${item.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+        <td class="py-2 px-4">R$ ${item.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+        <td class="py-2 px-4">${item.purchaseDate.split('-').reverse().join('/')}</td>
+        <td class="py-2 px-4">${item.description}</td>
+        <td class="py-2 px-4"><a href="${item.siteLink}" target="_blank" class="text-blue-600 hover:underline">${item.siteLink ? 'Ver Produto' : 'Sem Link'}</a></td>
+        <td class="py-2 px-4 flex justify-center items-center space-x-2">
+          <button class="bg-green-600 text-white p-2 rounded hover:bg-green-700 confirm-purchase">Confirmar Compra</button>
+          <button class="bg-blue-600 text-white p-2 rounded edit-item"><i class="fas fa-pencil-alt"></i></button>
+          <button class="bg-transparent text-red-600 hover:text-red-700 p-2 rounded" onclick="removeItem(this)"><i class="fas fa-trash"></i></button>
+        </td>
+      `;
+      itemsTable.appendChild(row);
+    }
+
+    // Função para atualizar a tabela ao adicionar a imagem correta
+    function updateItemInTable(item) {
+      const rows = itemsTable.querySelectorAll('tr');
+      rows.forEach(row => {
+        const itemName = row.children[1].textContent;
+        if (itemName === item.name) {
+          row.children[0].querySelector('img').src = item.image; // Atualiza a imagem
+        }
+      });
+    }
+
+    function showSuccessMessage() {
+      successMessage.classList.remove('opacity-0');
+      successMessage.classList.add('opacity-100');
+      setTimeout(() => {
+        successMessage.classList.remove('opacity-100');
+        successMessage.classList.add('opacity-0');
+      }, 2000);
+    }
+
+    function saveItemsToLocalStorage() {
+      const items = [];
+      const rows = itemsTable.querySelectorAll('tr');
+      rows.forEach(row => {
+        const item = {
+          name: row.children[1].textContent,
+          category: row.children[2].textContent,
+          quantity: parseInt(row.children[3].textContent),
+          price: parseFloat(row.children[4].textContent.replace('R$ ', '').replace('.', '').replace(',', '.')),
+          total: parseFloat(row.children[5].textContent.replace('R$ ', '').replace('.', '').replace(',', '.')),
+          purchaseDate: row.children[6].textContent.split('/').reverse().join('-'),
+          description: row.children[7].textContent,
+          siteLink: row.children[8].querySelector('a').href,
+          image: row.children[0].querySelector('img').src
+        };
+        items.push(item);
+      });
+      localStorage.setItem('shoppingList', JSON.stringify(items));
+    }
+
+    function loadItemsFromLocalStorage() {
+      const items = JSON.parse(localStorage.getItem('shoppingList')) || [];
+      items.forEach(item => addItemToTable(item));
+    }
+
+    function savePurchasedItemToLocalStorage(row) {
+      const purchasedItems = JSON.parse(localStorage.getItem('purchasedItems')) || [];
+      const item = {
+        name: row.children[1].textContent,
+        category: row.children[2].textContent,
+        quantity: parseInt(row.children[3].textContent),
+        price: parseFloat(row.children[4].textContent.replace('R$ ', '').replace('.', '').replace(',', '.')),
+        total: parseFloat(row.children[5].textContent.replace('R$ ', '').replace('.', '').replace(',', '.')),
+        purchaseDate: row.children[6].textContent.split('/').reverse().join('-'),
+        description: row.children[7].textContent,
+        siteLink: row.children[8].querySelector('a').href,
+        image: row.children[0].querySelector('img').src
+      };
+      purchasedItems.push(item);
+      localStorage.setItem('purchasedItems', JSON.stringify(purchasedItems));
+    }
+
+    function loadPurchasedItemsFromLocalStorage() {
+      const purchasedItems = JSON.parse(localStorage.getItem('purchasedItems')) || [];
+      purchasedItems.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="py-2 px-4"><img src="${item.image}" alt="Imagem do item ${item.name}" class="w-12 h-12 object-cover cursor-pointer" onclick="openImagePopup('${item.image}')"></td>
+          <td class="py-2 px-4">${item.name}</td>
+          <td class="py-2 px-4">${item.category}</td>
+          <td class="py-2 px-4">${item.quantity}</td>
+          <td class="py-2 px-4">R$ ${item.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+          <td class="py-2 px-4">R$ ${item.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+          <td class="py-2 px-4">${item.purchaseDate.split('-').reverse().join('/')}</td>
+          <td class="py-2 px-4">${item.description}</td>
+          <td class="py-2 px-4"><a href="${item.siteLink}" target="_blank" class="text-blue-600 hover:underline">${item.siteLink ? 'Ver Produto' : 'Sem Link'}</a></td>
+          <td class="py-2 px-4 flex justify-center items-center space-x-2">
+            <button class="bg-transparent text-red-600 hover:text-red-700 p-2 rounded" onclick="removePurchasedItem(this)"><i class="fas fa-trash"></i></button>
+          </td>
+        `;
+        purchasedItemsTable.appendChild(row);
+      });
+    }
+
+    function removePurchasedItem(button) {
+      const row = button.closest('tr');
+      row.remove();
+      const purchasedItems = JSON.parse(localStorage.getItem('purchasedItems')) || [];
+      const updatedItems = purchasedItems.filter(item => item.name !== row.children[1].textContent);
+      localStorage.setItem('purchasedItems', JSON.stringify(updatedItems));
+    }
+  </script>
+</body>
+</html>
