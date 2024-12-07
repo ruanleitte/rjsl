@@ -7,19 +7,75 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
-    body { font-family: 'Arial', sans-serif; }
-    .fade-in { animation: fadeIn 0.5s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    #success-message { transition: opacity 0.5s ease; }
-    .popup-overlay { background-color: rgba(0, 0, 0, 0.5); position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: none; z-index: 9999; justify-content: center; align-items: center; }
-    .popup { background-color: white; padding: 20px; border-radius: 8px; max-width: 500px; max-height: 90%; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); position: relative; }
-    .popup img { max-width: 100%; max-height: 80vh; object-fit: contain; }
-    .popup .close-btn { position: absolute; top: 10px; right: 10px; background: red; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
-    footer { margin-top: 20px; text-align: center; color: #666; }
+    body {
+      font-family: 'Arial', sans-serif;
+    }
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    #success-message {
+      transition: opacity 0.5s ease;
+    }
+    .popup-overlay {
+      background-color: rgba(0, 0, 0, 0.5);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: none;
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+    .popup {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 500px; /* Ajuste no tamanho do popup */
+      max-height: 90%;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative; /* Para posicionar o botão de fechar corretamente */
+    }
+    .popup img {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+    }
+    .popup .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+    footer {
+      margin-top: 20px;
+      text-align: center;
+      color: #666;
+    }
   </style>
 </head>
 <body class="bg-gray-100 p-5">
   <h1 class="text-4xl font-bold text-center text-gray-800 mb-6">Lista de Compras Futuras</h1>
+
   <form id="add-item-form" class="bg-white p-6 rounded-lg shadow-md mb-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="form-group">
@@ -43,6 +99,7 @@
         </select>
       </div>
     </div>
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div class="form-group">
         <label for="quantity" class="font-bold">Quantidade:</label>
@@ -57,24 +114,28 @@
         <input type="date" id="purchase-date" class="w-full p-3 border border-gray-300 rounded mt-1" required>
       </div>
     </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="form-group">
         <label for="site-link" class="font-bold">Link do Site:</label>
         <input type="url" id="site-link" class="w-full p-3 border border-gray-300 rounded mt-1" placeholder="Opcional">
       </div>
     </div>
+
     <div class="form-group mb-4">
       <label for="description" class="font-bold">Descrição:</label>
       <textarea id="description" class="w-full p-3 border border-gray-300 rounded mt-1" rows="3"></textarea>
     </div>
     <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700">Adicionar Item</button>
   </form>
+
   <div class="mb-5">
     <div class="flex space-x-4 mb-4">
       <button class="bg-gray-600 text-white p-3 rounded hover:bg-gray-700" onclick="showWishlist()">Itens de Desejo</button>
       <button class="bg-blue-600 text-white p-3 rounded hover:bg-blue-700" onclick="showPurchases()">Compras Efetivadas</button>
     </div>
   </div>
+
   <div class="overflow-x-auto mb-5">
     <div class="flex items-center mb-4">
       <label for="category-filter" class="font-bold mr-2">Filtrar por Categoria:</label>
@@ -93,6 +154,7 @@
         <option value="Outros">Outros</option>
       </select>
     </div>
+
     <table class="min-w-full bg-white rounded-lg shadow-md mt-4" id="wishlist-table">
       <thead>
         <tr class="bg-blue-600 text-white">
@@ -108,8 +170,10 @@
           <th class="py-3 px-4">Ação</th>
         </tr>
       </thead>
-      <tbody id="items-table" class="text-center"></tbody>
+      <tbody id="items-table" class="text-center">
+      </tbody>
     </table>
+
     <table class="min-w-full bg-white rounded-lg shadow-md mt-4 hidden" id="purchases-table">
       <thead>
         <tr class="bg-green-600 text-white">
@@ -125,9 +189,11 @@
           <th class="py-3 px-4">Ação</th>
         </tr>
       </thead>
-      <tbody id="purchased-items-table" class="text-center"></tbody>
+      <tbody id="purchased-items-table" class="text-center">
+      </tbody>
     </table>
   </div>
+
   <div class="popup-overlay" id="popup-overlay">
     <div class="popup" id="confirmation-popup">
       <h2 class="font-bold text-xl">Confirmar Compra</h2>
@@ -145,12 +211,14 @@
       </form>
     </div>
   </div>
+
   <div class="popup-overlay" id="image-popup-overlay">
     <div class="popup" id="image-popup">
       <button class="close-btn" id="close-image-popup">&times;</button>
       <img src="" alt="Imagem expandida do item" id="popup-image">
     </div>
   </div>
+
   <div class="popup-overlay" id="edit-popup-overlay">
     <div class="popup" id="edit-popup">
       <button class="close-btn" id="close-edit-popup">&times;</button>
@@ -196,12 +264,15 @@
       </form>
     </div>
   </div>
+
   <div id="success-message" class="text-green-600 opacity-0 mt-4 text-center">
     <p>Compra Confirmada com Sucesso!</p>
   </div>
+
   <footer>
     <p>Desenvolvido por Ruan Leite</p>
   </footer>
+
   <script>
     const form = document.getElementById('add-item-form');
     const itemsTable = document.getElementById('items-table');
@@ -218,14 +289,20 @@
     const closeImagePopupButton = document.getElementById('close-image-popup');
     const wishlistTable = document.getElementById('wishlist-table');
     const purchasesTable = document.getElementById('purchases-table');
+
     const editPopupOverlay = document.getElementById('edit-popup-overlay');
     const editForm = document.getElementById('edit-form');
     const closeEditPopupButton = document.getElementById('close-edit-popup');
+
     const imageCache = {};
+
+    // Carregar itens do localStorage ao iniciar
     document.addEventListener('DOMContentLoaded', loadItemsFromLocalStorage);
     document.addEventListener('DOMContentLoaded', loadPurchasedItemsFromLocalStorage);
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+
       const name = document.getElementById('item-name').value;
       const category = document.getElementById('category').value;
       const quantity = parseInt(document.getElementById('quantity').value);
@@ -233,19 +310,28 @@
       const purchaseDate = document.getElementById('purchase-date').value;
       const description = document.getElementById('description').value;
       const siteLink = document.getElementById('site-link').value;
+
       const itemTotal = price * quantity;
       const placeholderImage = 'https://placehold.co/600x400?text=Loading...';
-      const item = { name, category, quantity, price, purchaseDate, description, siteLink, total: itemTotal, image: placeholderImage };
+
+      const item = {
+        name,
+        category,
+        quantity,
+        price,
+        purchaseDate,
+        description,
+        siteLink,
+        total: itemTotal,
+        image: placeholderImage
+      };
+
       addItemToTable(item);
       saveItemsToLocalStorage();
       showSuccessMessage();
       form.reset();
-      if (siteLink) {
-        const imageLink = await fetchImageFromSite(siteLink);
-        item.image = imageLink;
-        updateItemInTable(item);
-      }
     });
+
     categoryFilter.addEventListener('change', () => {
       const filterValue = categoryFilter.value;
       const rows = document.querySelectorAll('#items-table tr');
@@ -258,47 +344,80 @@
         }
       });
     });
-    function showPurchases() { wishlistTable.classList.add('hidden'); purchasesTable.classList.remove('hidden'); }
-    function showWishlist() { purchasesTable.classList.add('hidden'); wishlistTable.classList.remove('hidden'); }
-    function openImagePopup(imageLink) { popupImage.src = imageLink; imagePopupOverlay.style.display = 'flex'; }
-    closeImagePopupButton.addEventListener('click', () => { imagePopupOverlay.style.display = 'none'; });
+
+    function showPurchases() {
+      wishlistTable.classList.add('hidden');
+      purchasesTable.classList.remove('hidden');
+    }
+
+    function showWishlist() {
+      purchasesTable.classList.add('hidden');
+      wishlistTable.classList.remove('hidden');
+    }
+
+    function openImagePopup(imageLink) {
+      popupImage.src = imageLink;
+      imagePopupOverlay.style.display = 'flex';
+    }
+
+    closeImagePopupButton.addEventListener('click', () => {
+      imagePopupOverlay.style.display = 'none';
+    });
+
     itemsTable.addEventListener('click', (e) => {
-      if (e.target.tagName === 'IMG') { const imageLink = e.target.src; openImagePopup(imageLink); }
+      if (e.target.tagName === 'IMG') {
+        const imageLink = e.target.src; // Captura a imagem do item
+        openImagePopup(imageLink); // Abre o popup com a imagem
+      }
+
       if (e.target.classList.contains('confirm-purchase')) {
         const row = e.target.closest('tr');
         popupOverlay.style.display = 'flex';
         confirmationPopup.style.display = 'block';
+
         confirmationForm.addEventListener('submit', (e) => {
           e.preventDefault();
+
           const confirmedPrice = parseFloat(document.getElementById('confirmed-price').value.replace('.', '').replace(',', '.'));
           const confirmedDate = document.getElementById('confirmed-date').value;
+
           row.querySelector('.confirm-purchase').remove();
+
           const rowClone = row.cloneNode(true);
           rowClone.querySelector('td:nth-child(6)').textContent = `R$ ${confirmedPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+          rowClone.querySelector('td:nth-child(7)').textContent = confirmedDate.split('-').reverse().join('/'); // Atualiza a data de compra
           purchasedItemsTable.appendChild(rowClone);
+
+          // Salvar item confirmado no localStorage
           savePurchasedItemToLocalStorage(rowClone);
+
           row.remove();
           popupOverlay.style.display = 'none';
           confirmationPopup.style.display = 'none';
+
           showSuccessMessage();
-          saveItemsToLocalStorage();
+          saveItemsToLocalStorage(); // Salva as mudanças no localStorage
         });
       }
+
       if (e.target.classList.contains('edit-item') || e.target.closest('.edit-item')) {
         const row = e.target.closest('tr');
         const name = row.children[1].textContent;
         const category = row.children[2].textContent;
         const quantity = row.children[3].textContent;
         const price = row.children[4].textContent.replace('R$ ', '').replace('.', '').replace(',', '.');
-        const purchaseDate = row.children[6].textContent;
+        const purchaseDate = row.children[6].textContent.split('/').reverse().join('-'); // Formato correto para o input de data
         const description = row.children[7].textContent;
+
         document.getElementById('edit-item-name').value = name;
         document.getElementById('edit-category').value = category;
         document.getElementById('edit-quantity').value = quantity;
         document.getElementById('edit-price').value = price;
         document.getElementById('edit-purchase-date').value = purchaseDate;
         document.getElementById('edit-description').value = description;
+
         editPopupOverlay.style.display = 'flex';
+
         editForm.onsubmit = (e) => {
           e.preventDefault();
           const editedItem = {
@@ -309,28 +428,43 @@
             purchaseDate: document.getElementById('edit-purchase-date').value,
             description: document.getElementById('edit-description').value,
           };
-          editedItem.total = editedItem.price * editedItem.quantity;
+
+          editedItem.total = editedItem.price * editedItem.quantity; // Corrigido para calcular o total corretamente
+
           row.children[1].textContent = editedItem.name;
           row.children[2].textContent = editedItem.category;
           row.children[3].textContent = editedItem.quantity;
           row.children[4].textContent = `R$ ${editedItem.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
           row.children[5].textContent = `R$ ${editedItem.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-          row.children[6].textContent = editedItem.purchaseDate;
+          row.children[6].textContent = editedItem.purchaseDate.split('-').reverse().join('/'); // Atualiza o formato da data
           row.children[7].textContent = editedItem.description;
+
           editPopupOverlay.style.display = 'none';
-          saveItemsToLocalStorage();
+          saveItemsToLocalStorage(); // Atualiza o localStorage após editar um item
+          sortItemsByDate(); // Chama a função para ordenar os itens
         };
       }
     });
-    cancelPopupButton.addEventListener('click', () => { popupOverlay.style.display = 'none'; confirmationPopup.style.display = 'none'; });
-    closeEditPopupButton.addEventListener('click', () => { editPopupOverlay.style.display = 'none'; });
+
+    cancelPopupButton.addEventListener('click', () => {
+      popupOverlay.style.display = 'none';
+      confirmationPopup.style.display = 'none';
+    });
+
+    closeEditPopupButton.addEventListener('click', () => {
+      editPopupOverlay.style.display = 'none';
+    });
+
     function removeItem(button) {
       const row = button.closest('tr');
       row.remove();
-      saveItemsToLocalStorage();
+      saveItemsToLocalStorage(); // Atualiza o localStorage após remover um item
     }
+
     async function fetchImageFromSite(siteLink) {
-      if (imageCache[siteLink]) { return imageCache[siteLink]; }
+      if (imageCache[siteLink]) {
+        return imageCache[siteLink];
+      }
       try {
         const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(siteLink)}`);
         const data = await response.json();
@@ -345,6 +479,7 @@
         return 'https://placehold.co/600x400?text=No+Image';
       }
     }
+
     function addItemToTable(item) {
       const row = document.createElement('tr');
       row.classList.add('fade-in');
@@ -365,16 +500,30 @@
         </td>
       `;
       itemsTable.appendChild(row);
+      sortItemsByDate(); // Chama a função para ordenar os itens
     }
+
+    function sortItemsByDate() {
+      const rows = Array.from(itemsTable.querySelectorAll('tr'));
+      rows.sort((a, b) => {
+        const dateA = new Date(a.children[6].textContent.split('/').reverse().join('-')); // Formato dd/mm/yyyy para yyyy-mm-dd
+        const dateB = new Date(b.children[6].textContent.split('/').reverse().join('-'));
+        return dateA - dateB; // Ordena em ordem crescente
+      });
+      rows.forEach(row => itemsTable.appendChild(row)); // Adiciona as linhas ordenadas de volta à tabela
+    }
+
+    // Função para atualizar a tabela ao adicionar a imagem correta
     function updateItemInTable(item) {
       const rows = itemsTable.querySelectorAll('tr');
       rows.forEach(row => {
         const itemName = row.children[1].textContent;
         if (itemName === item.name) {
-          row.children[0].querySelector('img').src = item.image;
+          row.children[0].querySelector('img').src = item.image; // Atualiza a imagem
         }
       });
     }
+
     function showSuccessMessage() {
       successMessage.classList.remove('opacity-0');
       successMessage.classList.add('opacity-100');
@@ -383,6 +532,7 @@
         successMessage.classList.add('opacity-0');
       }, 2000);
     }
+
     function saveItemsToLocalStorage() {
       const items = [];
       const rows = itemsTable.querySelectorAll('tr');
@@ -402,10 +552,12 @@
       });
       localStorage.setItem('shoppingList', JSON.stringify(items));
     }
+
     function loadItemsFromLocalStorage() {
       const items = JSON.parse(localStorage.getItem('shoppingList')) || [];
       items.forEach(item => addItemToTable(item));
     }
+
     function savePurchasedItemToLocalStorage(row) {
       const purchasedItems = JSON.parse(localStorage.getItem('purchasedItems')) || [];
       const item = {
@@ -422,6 +574,7 @@
       purchasedItems.push(item);
       localStorage.setItem('purchasedItems', JSON.stringify(purchasedItems));
     }
+
     function loadPurchasedItemsFromLocalStorage() {
       const purchasedItems = JSON.parse(localStorage.getItem('purchasedItems')) || [];
       purchasedItems.forEach(item => {
@@ -443,6 +596,7 @@
         purchasedItemsTable.appendChild(row);
       });
     }
+
     function removePurchasedItem(button) {
       const row = button.closest('tr');
       row.remove();
