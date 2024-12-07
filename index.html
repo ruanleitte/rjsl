@@ -159,13 +159,13 @@
       <thead>
         <tr class="bg-blue-600 text-white">
           <th class="py-3 px-4">Imagem</th>
-          <th class="py-3 px-4">Nome</th>
+          <th class="py-3 px-4 text-left">Nome</th>
           <th class="py-3 px-4">Categoria</th>
           <th class="py-3 px-4">Qtd</th>
           <th class="py-3 px-4">Preço</th>
           <th class="py-3 px-4">Total</th>
           <th class="py-3 px-4">Data de Compra</th>
-          <th class="py-3 px-4">Descrição</th>
+          <th class="py-3 px-4 text-left">Descrição</th>
           <th class="py-3 px-4">Link do Site</th>
           <th class="py-3 px-4">Ação</th>
         </tr>
@@ -178,13 +178,13 @@
       <thead>
         <tr class="bg-green-600 text-white">
           <th class="py-3 px-4">Imagem</th>
-          <th class="py-3 px-4">Nome</th>
+          <th class="py-3 px-4 text-left">Nome</th>
           <th class="py-3 px-4">Categoria</th>
           <th class="py-3 px-4">Qtd</th>
           <th class="py-3 px-4">Preço</th>
           <th class="py-3 px-4">Total</th>
           <th class="py-3 px-4">Data de Compra</th>
-          <th class="py-3 px-4">Descrição</th>
+          <th class="py-3 px-4 text-left">Descrição</th>
           <th class="py-3 px-4">Link do Site</th>
           <th class="py-3 px-4">Ação</th>
         </tr>
@@ -485,13 +485,13 @@
       row.classList.add('fade-in');
       row.innerHTML = `
         <td class="py-2 px-4"><img src="${item.image}" alt="Imagem do item ${item.name}" class="w-12 h-12 object-cover cursor-pointer" onclick="openImagePopup('${item.image}')"></td>
-        <td class="py-2 px-4">${item.name}</td>
+        <td class="py-2 px-4 text-left">${item.name}</td>
         <td class="py-2 px-4">${item.category}</td>
         <td class="py-2 px-4">${item.quantity}</td>
         <td class="py-2 px-4">R$ ${item.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
         <td class="py-2 px-4">R$ ${item.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
         <td class="py-2 px-4">${item.purchaseDate.split('-').reverse().join('/')}</td>
-        <td class="py-2 px-4">${item.description}</td>
+        <td class="py-2 px-4 text-left">${item.description}</td>
         <td class="py-2 px-4"><a href="${item.siteLink}" target="_blank" class="text-blue-600 hover:underline">${item.siteLink ? 'Ver Produto' : 'Sem Link'}</a></td>
         <td class="py-2 px-4 flex justify-center items-center space-x-2">
           <button class="bg-green-600 text-white p-2 rounded hover:bg-green-700 confirm-purchase">Confirmar Compra</button>
@@ -581,13 +581,13 @@
         const row = document.createElement('tr');
         row.innerHTML = `
           <td class="py-2 px-4"><img src="${item.image}" alt="Imagem do item ${item.name}" class="w-12 h-12 object-cover cursor-pointer" onclick="openImagePopup('${item.image}')"></td>
-          <td class="py-2 px-4">${item.name}</td>
+          <td class="py-2 px-4 text-left">${item.name}</td>
           <td class="py-2 px-4">${item.category}</td>
           <td class="py-2 px-4">${item.quantity}</td>
           <td class="py-2 px-4">R$ ${item.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
           <td class="py-2 px-4">R$ ${item.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
           <td class="py-2 px-4">${item.purchaseDate.split('-').reverse().join('/')}</td>
-          <td class="py-2 px-4">${item.description}</td>
+          <td class="py-2 px-4 text-left">${item.description}</td>
           <td class="py-2 px-4"><a href="${item.siteLink}" target="_blank" class="text-blue-600 hover:underline">${item.siteLink ? 'Ver Produto' : 'Sem Link'}</a></td>
           <td class="py-2 px-4 flex justify-center items-center space-x-2">
             <button class="bg-transparent text-red-600 hover:text-red-700 p-2 rounded" onclick="removePurchasedItem(this)"><i class="fas fa-trash"></i></button>
