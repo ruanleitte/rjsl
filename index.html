@@ -40,11 +40,11 @@
       background-color: white;
       padding: 20px;
       border-radius: 8px;
-      max-width: 500px; /* Ajuste no tamanho do popup */
+      max-width: 500px;
       max-height: 90%;
       overflow: hidden;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      position: relative; /* Para posicionar o botão de fechar corretamente */
+      position: relative;
     }
     .popup img {
       max-width: 100%;
@@ -70,6 +70,18 @@
       margin-top: 20px;
       text-align: center;
       color: #666;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .filter-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
     }
   </style>
 </head>
@@ -133,39 +145,54 @@
     <div class="flex space-x-4 mb-4">
       <button class="bg-gray-600 text-white p-3 rounded hover:bg-gray-700" onclick="showWishlist()">Itens de Desejo</button>
       <button class="bg-blue-600 text-white p-3 rounded hover:bg-blue-700" onclick="showPurchases()">Compras Efetivadas</button>
+      <button class="bg-green-600 text-white p-3 rounded hover:bg-green-700" onclick="exportToExcel()">Exportar para Excel</button>
+    </div>
+  </div>
+
+  <div class="filter-controls">
+    <div>
+      <label for="month-filter" class="font-bold mr-2">Filtrar por Mês:</label>
+      <select id="month-filter" class="p-2 border border-gray-300 rounded">
+        <option value="">Todos</option>
+        <option value="01">Janeiro</option>
+        <option value="02">Fevereiro</option>
+        <option value="03">Março</option>
+        <option value="04">Abril</option>
+        <option value="05">Maio</option>
+        <option value="06">Junho</option>
+        <option value="07">Julho</option>
+        <option value="08">Agosto</option>
+        <option value="09">Setembro</option>
+        <option value="10">Outubro</option>
+        <option value="11">Novembro</option>
+        <option value="12">Dezembro</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+    <div class="card">
+      <h2 class="font-bold text-lg">Acumulado Itens de Desejo</h2>
+      <p id="total-wishlist" class="text-2xl font-semibold">R$ 0,00</p>
+    </div>
+    <div class="card">
+      <h2 class="font-bold text-lg">Acumulado Compras Efetivadas</h2>
+      <p id="total-purchases" class="text-2xl font-semibold">R$ 0,00</p>
     </div>
   </div>
 
   <div class="overflow-x-auto mb-5">
-    <div class="flex items-center mb-4">
-      <label for="category-filter" class="font-bold mr-2">Filtrar por Categoria:</label>
-      <select id="category-filter" class="w-60 p-3 border border-gray-300 rounded">
-        <option value="">Todas</option>
-        <option value="Eletrodomésticos">Eletrodomésticos</option>
-        <option value="Vestuário">Vestuário</option>
-        <option value="Tecnologia">Tecnologia</option>
-        <option value="Alimentos">Alimentos</option>
-        <option value="Móveis">Móveis</option>
-        <option value="Brinquedos">Brinquedos</option>
-        <option value="Livros">Livros</option>
-        <option value="Esportes">Esportes</option>
-        <option value="Beleza">Beleza</option>
-        <option value="Saúde">Saúde</option>
-        <option value="Outros">Outros</option>
-      </select>
-    </div>
-
     <table class="min-w-full bg-white rounded-lg shadow-md mt-4" id="wishlist-table">
       <thead>
         <tr class="bg-blue-600 text-white">
           <th class="py-3 px-4">Imagem</th>
-          <th class="py-3 px-4">Nome</th>
+          <th class="py-3 px-4 text-left">Nome</th>
           <th class="py-3 px-4">Categoria</th>
           <th class="py-3 px-4">Qtd</th>
           <th class="py-3 px-4">Preço</th>
           <th class="py-3 px-4">Total</th>
           <th class="py-3 px-4">Data de Compra</th>
-          <th class="py-3 px-4">Descrição</th>
+          <th class="py-3 px-4 text-left">Descrição</th>
           <th class="py-3 px-4">Link do Site</th>
           <th class="py-3 px-4">Ação</th>
         </tr>
@@ -282,7 +309,9 @@
     const popupOverlay = document.getElementById('popup-overlay');
     const confirmationForm = document.getElementById('confirmation-form');
     const cancelPopupButton = document.getElementById('cancel-popup');
-    const categoryFilter = document.getElementById('category-filter');
+    const monthFilter = document.getElementById('month-filter');
+    const totalWishlist = document.getElementById('total-wishlist');
+    const totalPurchases = document.getElementById('total-purchases');
     const imagePopupOverlay = document.getElementById('image-popup-overlay');
     const imagePopup = document.getElementById('image-popup');
     const popupImage = document.getElementById('popup-image');
@@ -296,7 +325,6 @@
 
     const imageCache = {};
 
-    // Carregar itens do localStorage ao iniciar
     document.addEventListener('DOMContentLoaded', loadItemsFromLocalStorage);
     document.addEventListener('DOMContentLoaded', loadPurchasedItemsFromLocalStorage);
 
@@ -330,29 +358,43 @@
       saveItemsToLocalStorage();
       showSuccessMessage();
       form.reset();
+      updateTotal();
     });
 
-    categoryFilter.addEventListener('change', () => {
-      const filterValue = categoryFilter.value;
-      const rows = document.querySelectorAll('#items-table tr');
+    monthFilter.addEventListener('change', () => {
+      applyMonthFilter();
+    });
+
+    function applyMonthFilter() {
+      const filterValue = monthFilter.value;
+      const currentTable = wishlistTable.classList.contains('hidden') ? purchasedItemsTable : itemsTable;
+      const rows = currentTable.querySelectorAll('tr');
       rows.forEach(row => {
-        const category = row.querySelector('td:nth-child(3)').textContent;
-        if (filterValue === '' || category === filterValue) {
+        const purchaseDate = row.children[6].textContent;
+        const purchaseMonth = purchaseDate.split('/')[1];
+        if (filterValue === '' || purchaseMonth === filterValue) {
           row.style.display = '';
         } else {
           row.style.display = 'none';
         }
       });
-    });
+      updateTotal();
+    }
 
     function showPurchases() {
       wishlistTable.classList.add('hidden');
       purchasesTable.classList.remove('hidden');
+      monthFilter.value = ''; // Resetar filtro ao mudar para compras
+      applyMonthFilter(); // Aplicar filtro após mudar para compras
+      updateTotal();
     }
 
     function showWishlist() {
       purchasesTable.classList.add('hidden');
       wishlistTable.classList.remove('hidden');
+      monthFilter.value = ''; // Resetar filtro ao mudar para lista de desejos
+      applyMonthFilter(); // Aplicar filtro após mudar para lista de desejos
+      updateTotal();
     }
 
     function openImagePopup(imageLink) {
@@ -366,8 +408,8 @@
 
     itemsTable.addEventListener('click', (e) => {
       if (e.target.tagName === 'IMG') {
-        const imageLink = e.target.src; // Captura a imagem do item
-        openImagePopup(imageLink); // Abre o popup com a imagem
+        const imageLink = e.target.src;
+        openImagePopup(imageLink);
       }
 
       if (e.target.classList.contains('confirm-purchase')) {
@@ -385,10 +427,9 @@
 
           const rowClone = row.cloneNode(true);
           rowClone.querySelector('td:nth-child(6)').textContent = `R$ ${confirmedPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-          rowClone.querySelector('td:nth-child(7)').textContent = confirmedDate.split('-').reverse().join('/'); // Atualiza a data de compra
+          rowClone.querySelector('td:nth-child(7)').textContent = confirmedDate.split('-').reverse().join('/');
           purchasedItemsTable.appendChild(rowClone);
 
-          // Salvar item confirmado no localStorage
           savePurchasedItemToLocalStorage(rowClone);
 
           row.remove();
@@ -396,7 +437,8 @@
           confirmationPopup.style.display = 'none';
 
           showSuccessMessage();
-          saveItemsToLocalStorage(); // Salva as mudanças no localStorage
+          saveItemsToLocalStorage();
+          updateTotal();
         });
       }
 
@@ -406,7 +448,7 @@
         const category = row.children[2].textContent;
         const quantity = row.children[3].textContent;
         const price = row.children[4].textContent.replace('R$ ', '').replace('.', '').replace(',', '.');
-        const purchaseDate = row.children[6].textContent.split('/').reverse().join('-'); // Formato correto para o input de data
+        const purchaseDate = row.children[6].textContent.split('/').reverse().join('-');
         const description = row.children[7].textContent;
 
         document.getElementById('edit-item-name').value = name;
@@ -429,19 +471,19 @@
             description: document.getElementById('edit-description').value,
           };
 
-          editedItem.total = editedItem.price * editedItem.quantity; // Corrigido para calcular o total corretamente
+          editedItem.total = editedItem.price * editedItem.quantity; // Calcular total corretamente
 
           row.children[1].textContent = editedItem.name;
           row.children[2].textContent = editedItem.category;
           row.children[3].textContent = editedItem.quantity;
           row.children[4].textContent = `R$ ${editedItem.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
           row.children[5].textContent = `R$ ${editedItem.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-          row.children[6].textContent = editedItem.purchaseDate.split('-').reverse().join('/'); // Atualiza o formato da data
+          row.children[6].textContent = editedItem.purchaseDate.split('-').reverse().join('/');
           row.children[7].textContent = editedItem.description;
 
           editPopupOverlay.style.display = 'none';
-          saveItemsToLocalStorage(); // Atualiza o localStorage após editar um item
-          sortItemsByDate(); // Chama a função para ordenar os itens
+          saveItemsToLocalStorage();
+          updateTotal();
         };
       }
     });
@@ -458,7 +500,8 @@
     function removeItem(button) {
       const row = button.closest('tr');
       row.remove();
-      saveItemsToLocalStorage(); // Atualiza o localStorage após remover um item
+      saveItemsToLocalStorage();
+      updateTotal();
     }
 
     async function fetchImageFromSite(siteLink) {
@@ -500,28 +543,35 @@
         </td>
       `;
       itemsTable.appendChild(row);
-      sortItemsByDate(); // Chama a função para ordenar os itens
+      updateTotal();
     }
 
-    function sortItemsByDate() {
-      const rows = Array.from(itemsTable.querySelectorAll('tr'));
-      rows.sort((a, b) => {
-        const dateA = new Date(a.children[6].textContent.split('/').reverse().join('-')); // Formato dd/mm/yyyy para yyyy-mm-dd
-        const dateB = new Date(b.children[6].textContent.split('/').reverse().join('-'));
-        return dateA - dateB; // Ordena em ordem crescente
-      });
-      rows.forEach(row => itemsTable.appendChild(row)); // Adiciona as linhas ordenadas de volta à tabela
-    }
+    function updateTotal() {
+      let wishlistTotal = 0;
+      const wishlistRows = itemsTable.querySelectorAll('tr');
 
-    // Função para atualizar a tabela ao adicionar a imagem correta
-    function updateItemInTable(item) {
-      const rows = itemsTable.querySelectorAll('tr');
-      rows.forEach(row => {
-        const itemName = row.children[1].textContent;
-        if (itemName === item.name) {
-          row.children[0].querySelector('img').src = item.image; // Atualiza a imagem
+      wishlistRows.forEach(row => {
+        if (row.style.display !== 'none') {
+          const totalText = row.children[5].textContent;
+          const total = parseFloat(totalText.replace('R$ ', '').replace('.', '').replace(',', '.'));
+          wishlistTotal += total;
         }
       });
+
+      totalWishlist.textContent = `R$ ${wishlistTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+      let purchasesTotal = 0;
+      const purchasesRows = purchasedItemsTable.querySelectorAll('tr');
+
+      purchasesRows.forEach(row => {
+        if (row.style.display !== 'none') {
+          const totalText = row.children[5].textContent;
+          const total = parseFloat(totalText.replace('R$ ', '').replace('.', '').replace(',', '.'));
+          purchasesTotal += total;
+        }
+      });
+
+      totalPurchases.textContent = `R$ ${purchasesTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
     }
 
     function showSuccessMessage() {
@@ -595,6 +645,7 @@
         `;
         purchasedItemsTable.appendChild(row);
       });
+      updateTotal();
     }
 
     function removePurchasedItem(button) {
@@ -603,7 +654,58 @@
       const purchasedItems = JSON.parse(localStorage.getItem('purchasedItems')) || [];
       const updatedItems = purchasedItems.filter(item => item.name !== row.children[1].textContent);
       localStorage.setItem('purchasedItems', JSON.stringify(updatedItems));
+      updateTotal();
+    }
+
+    function exportToExcel() {
+      const wishlistData = [];
+      const purchasedData = [];
+
+      // Gather data from wishlist
+      const wishlistRows = itemsTable.querySelectorAll('tr');
+      wishlistRows.forEach(row => {
+        const rowData = [
+          row.children[1].textContent, // Nome
+          row.children[2].textContent, // Categoria
+          row.children[3].textContent, // Quantidade
+          row.children[4].textContent, // Preço
+          row.children[5].textContent, // Total
+          row.children[6].textContent, // Data de Compra
+          row.children[7].textContent, // Descrição
+          row.children[8].querySelector('a') ? row.children[8].querySelector('a').href : 'Sem Link' // Link do Site
+        ];
+        wishlistData.push(rowData);
+      });
+
+      // Gather data from purchases
+      const purchasedRows = purchasedItemsTable.querySelectorAll('tr');
+      purchasedRows.forEach(row => {
+        const rowData = [
+          row.children[1].textContent, // Nome
+          row.children[2].textContent, // Categoria
+          row.children[3].textContent, // Quantidade
+          row.children[4].textContent, // Preço
+          row.children[5].textContent, // Total
+          row.children[6].textContent, // Data de Compra
+          row.children[7].textContent, // Descrição
+          row.children[8].querySelector('a') ? row.children[8].querySelector('a').href : 'Sem Link' // Link do Site
+        ];
+        purchasedData.push(rowData);
+      });
+
+      // Create a new workbook and add worksheets
+      const workbook = XLSX.utils.book_new();
+      const wishlistWorksheet = XLSX.utils.aoa_to_sheet([['Nome', 'Categoria', 'Quantidade', 'Preço', 'Total', 'Data de Compra', 'Descrição', 'Link do Site'], ...wishlistData]);
+      const purchasesWorksheet = XLSX.utils.aoa_to_sheet([['Nome', 'Categoria', 'Quantidade', 'Preço', 'Total', 'Data de Compra', 'Descrição', 'Link do Site'], ...purchasedData]);
+
+      // Append worksheets to workbook
+      XLSX.utils.book_append_sheet(workbook, wishlistWorksheet, 'Itens de Desejo');
+      XLSX.utils.book_append_sheet(workbook, purchasesWorksheet, 'Compras Efetivadas');
+
+      // Export the workbook
+      XLSX.writeFile(workbook, 'Lista_de_Compras_Futuras.xlsx');
     }
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 </body>
 </html>
